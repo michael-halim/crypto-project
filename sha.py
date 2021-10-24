@@ -1,4 +1,4 @@
-from Utils.help_function import *
+from Utils.help_function import initializer, chunker, preprocessMessage, b2Tob16
 from Utils.simple_function import *
 from Utils.const import *
 
@@ -50,10 +50,3 @@ def sha256(message):
     for val in [h0, h1, h2, h3, h4, h5, h6, h7]:
         digest += b2Tob16(val)
     return digest
-
-if __name__ == '__main__':
-    while 1:
-        input_message = input('Type or copy your message here: ')
-        print('Your message: ', input_message)
-        print('Hash: ', sha256(input_message))
-       
