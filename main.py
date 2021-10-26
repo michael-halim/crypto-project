@@ -1,7 +1,7 @@
 from sha import sha256
 from datetime import datetime,date
 import os
-
+from threading import Event
 def MENU(opt='START_MENU'):
     if opt == 'START_MENU':
         print('1. Login\n2. Sign up\n0. Log Off \n')
@@ -10,7 +10,7 @@ def MENU(opt='START_MENU'):
 
     return input('>>>')
 
-def login(file_name, username, hashed_pw):
+def match(file_name, username, hashed, opt='LOGIN'):
     line_number = 0
     result = []
 
@@ -24,12 +24,17 @@ def login(file_name, username, hashed_pw):
 
     result = result[0].split()
     
-    if result[2] == hashed_pw:
-        return 1
-    
-    return 0
+    if opt == 'LOGIN':
+        if result[2] == hashed:
+            return 1      
+        return 0
 
-def fetchData(file_name,username):
+    elif opt == 'PIN':
+        if result[-2] == hashed:
+            return 1
+        return 0
+
+def fetchData(file_name,username,opt='ALL'):
     line_number = 0
     results = []
 
@@ -42,7 +47,13 @@ def fetchData(file_name,username):
                 results.append((line.rstrip()))
 
     results = [result.split('#') for result in results]
-    return results
+
+    if opt == 'ALL':
+        return results
+
+    elif opt == 'PHONE':
+        return results[-1]
+
 
 def prepareData(data):
     tmp = data[1].split()
@@ -52,6 +63,7 @@ def prepareData(data):
     
 
     return tmp
+
 while True:
     chc = MENU()
     while True:
@@ -65,11 +77,10 @@ while True:
         username = input('Input Username : ')
         passwd = sha256(input('Input Password : '))
         
-        if login(path,username, passwd):
+        if match(path,username, passwd,'LOGIN'):
             os.system('cls')
             path = 'database/history.txt'
-            history_data = fetchData(path,username)
-            history_data = [prepareData(data) for data in history_data]
+
             while True:
                 main_chc = MENU('MAIN_MENU')
 
@@ -80,10 +91,12 @@ while True:
                     main_chc = input('>>>')
 
                 if main_chc == '1':
+
                     now = datetime.now()
                     epoch = now.timestamp()
                     historyid = sha256(str(epoch))[:11]
-
+                    # spaces = [10,8,20,8,8,10,10]
+                    spaces = [19,20,8,8,10,10]
                     _datetime = str(now.strftime('%Y-%m-%d %H:%M:%S'))
                     bank = input('Input Bank : ')
                     amount = input('Input Amount of Money : ')
@@ -91,18 +104,43 @@ while True:
                     sender = bank
                     receiver = username
                     _type = 'Top Up'
-                    string = historyid + '#' + _datetime + '#' + desc + '#' + _type + \
-                            '#' + amount + '#' + sender + '#' + receiver + '\n'
+
+                    list_of_data = [_datetime, desc, _type, amount, sender,receiver]
+                    
+                    string = historyid
+
+                    for data,space in zip(list_of_data,spaces):
+                        string += '#'
+                        if len(data) < space:
+                            data = data + ' ' * (space-len(data))
+                        string += data
+
+                    string += '\n'
+
                     f = open(path,'a')
                     f.write(string)
                     f.close()
 
                 elif main_chc == '2':
-                    print('Transfer')
+                    phone = ('Input Phone Number : ')
+                    receiver = fetchData(path,username,opt='PHONE')
+                    print('Receiver : ', receiver)
+                    amount = input('Input Amount : ')
+                    pin = input('Enter PIN : ')
 
+                    if match(path,username,pin,'PIN'):
+                        print('Berhasil Transfer')
+
+                    else :
+                        print('Tidak Berhasil')
                 elif main_chc == '3':
-                    print('Tanggal'.ljust(15) + 'Jam'.ljust(15) + 'Judul'.ljust(10) + 
-                    'Jenis Transfer'.ljust(20) + 'Nominal'.ljust(10) + 'Pengirim'.ljust(10) +'Penerima')
+
+                    history_data = fetchData(path,username)
+                    history_data = [ prepareData(data) for data in history_data ]
+
+                    print('Date'.ljust(12) + 'Time'.ljust(10) + 'Description'.ljust(22) + 
+                    'Type'.ljust(10) + 'Amount'.ljust(10) + 'Sender'.ljust(12) +'Receiver')
+                    
                     for data in history_data:
                         for value in data:
                             print(value,end='  ')
