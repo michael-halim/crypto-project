@@ -1,7 +1,12 @@
 from sha import sha256
 from datetime import datetime,date
 import os
+import re
 from threading import Event
+
+def isNumber(txt,_min=6, _max=10): return True if re.match('^[0-9]{' + str(_min) + ',' + str(_max) + '}$',txt) else False
+def isNotNumber(txt,_min=6, _max=10): return True if re.match('^[^0-9]{'+ str(_min) + ',' + str(_max) + '}$',txt) else False
+
 def MENU(opt='START_MENU'):
     if opt == 'START_MENU':
         print('1. Login\n2. Sign up\n0. Log Off \n')
@@ -9,6 +14,7 @@ def MENU(opt='START_MENU'):
         print('1. Top Up\n2. Transfer\n3. History\n0. Log Off \n')
 
     return input('>>>')
+
 
 def match(file_name, username, hashed, opt='LOGIN'):
     line_number = 0
@@ -34,7 +40,7 @@ def match(file_name, username, hashed, opt='LOGIN'):
             return 1
         return 0
 
-def fetchData(file_name,username,opt='ALL'):
+def fetchData(file_name,username):
     line_number = 0
     results = []
 
@@ -48,19 +54,36 @@ def fetchData(file_name,username,opt='ALL'):
 
     results = [result.split('#') for result in results]
 
-    if opt == 'ALL':
-        return results
+    return results
 
-    elif opt == 'PHONE':
-        return results[-1]
 
+def getReceiverName(file_name,phone,username):
+    line_number = 0
+    results = []
+    status = None
+    with open(file_name, 'r') as read_obj:
+
+        for line in read_obj:
+            line_number += 1
+
+            if phone in line:
+                results.append((line.rstrip()))
+    
+    
+    if results:
+        results = [result.split(' ') for result in results]
+        
+        if results[0][1] == username:
+            return ('300','Can\'t Self Transfer')
+
+        return ('1',results[0][1])
+    else:
+        return ('400','Phone Number Not Found')
 
 def prepareData(data):
     tmp = data[1].split()
     data = data[2:]
-    for val in data:
-        tmp.append(val)
-    
+    [ tmp.append(val) for val in data ]
 
     return tmp
 
@@ -122,17 +145,29 @@ while True:
                     f.close()
 
                 elif main_chc == '2':
-                    phone = ('Input Phone Number : ')
-                    receiver = fetchData(path,username,opt='PHONE')
-                    print('Receiver : ', receiver)
+                    while True:
+                        phone = input('Input Phone Number : ')
+                        receiver = getReceiverName('database/user.txt',phone,username)
+
+                        if receiver[0] == '1':
+                            print('Receiver : ', receiver[1])
+                            break
+                        elif receiver[0] == '300':
+                            print(receiver[1])
+                        elif receiver[0] == '400':
+                            print(receiver[1])
+
                     amount = input('Input Amount : ')
                     pin = input('Enter PIN : ')
 
-                    if match(path,username,pin,'PIN'):
+                    if match('database/user.txt',username,pin,'PIN'):
                         print('Berhasil Transfer')
+                        print('Transfer of {} Has Been Made to {}'.format(amount,receiver))
 
                     else :
                         print('Tidak Berhasil')
+
+
                 elif main_chc == '3':
 
                     history_data = fetchData(path,username)
