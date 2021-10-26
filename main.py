@@ -2,6 +2,8 @@ from sha import sha256
 from datetime import datetime,date
 import os
 import re
+import pandas as pd
+from termcolor import colored
 from threading import Event
 
 def isNumber(txt,_min=6, _max=10): return True if re.match('^[0-9]{' + str(_min) + ',' + str(_max) + '}$',txt) else False
@@ -14,20 +16,16 @@ def MENU(opt='START_MENU'):
     if opt == 'START_MENU':
         print('1. Login\n2. Sign up\n0. Log Off \n')
     elif opt == 'MAIN_MENU':
-        print('1. Top Up\n2. Transfer\n3. History\n0. Log Off \n')
+        print('1. Top Up\n2. Transfer\n3. History\n4. Download History\n0. Log Off \n')
 
-    return input('>>>')
+    return input('>>> ')
 
 
 def match(file_name, username, hashed, opt='LOGIN'):
-    line_number = 0
     result = []
 
     with open(file_name, 'r') as read_obj:
-
         for line in read_obj:
-            line_number += 1
-
             if username in line:
                 result.append((line.rstrip()))
 
@@ -44,14 +42,10 @@ def match(file_name, username, hashed, opt='LOGIN'):
         return 0
 
 def fetchData(file_name,username):
-    line_number = 0
     results = []
 
     with open(file_name, 'r') as read_obj:
-
         for line in read_obj:
-            line_number += 1
-
             if username in line:
                 results.append((line.rstrip()))
 
@@ -59,19 +53,12 @@ def fetchData(file_name,username):
 
     return results
 
-
 def getReceiverName(file_name,phone,username):
-    line_number = 0
     results = []
-    status = None
     with open(file_name, 'r') as read_obj:
-
         for line in read_obj:
-            line_number += 1
-
             if phone in line:
                 results.append((line.rstrip()))
-    
     
     if results:
         results = [result.split(' ') for result in results]
@@ -83,6 +70,27 @@ def getReceiverName(file_name,phone,username):
     else:
         return ('400','Phone Number Not Found')
 
+def calculateWallet(username):
+    file_name = 'database/history.txt'
+    results = []
+    with open(file_name, 'r') as read_obj:
+        for line in read_obj:
+            if username in line:
+                results.append((line.rstrip()))
+    
+    wallet = 0
+
+    if results:
+        results = [result.split('#') for result in results]
+
+        for result in results:
+            if result[-1] == username: wallet += int(result[-3])
+            else: wallet -= int(result[-3])
+        
+        return wallet
+
+    return wallet
+
 def prepareData(data):
     tmp = data[1].split()
     data = data[2:]
@@ -90,13 +98,36 @@ def prepareData(data):
 
     return tmp
 
+def downloadHistory(opt='EXCEL'):
+    _date, time, desc, _type = [ row[0] for row in results],[ row[1] for row in results], [ row[2] for row in results],[ row[3] for row in results]
+    amount, sender, receiver = [ row[4] for row in results], [ row[5] for row in results], [ row[6] for row in results]
+    
+    download_df = pd.DataFrame({
+        'Date':_date,
+        'Time':time,
+        'Description':desc,
+        'Type':_type,
+        'Amount':amount,
+        'Sender':sender,
+        'Receiver':receiver
+        })
+
+    if opt == 'EXCEL':
+        output = pd.ExcelWriter('output.xlsx')
+        download_df.to_excel(output)
+        output.save()
+        return 1
+
+    elif opt == 'CSV':
+        download_df.to_csv('output.csv',index=False)
+        return 1
+
+    return 0
+
 while True:
     chc = MENU()
-    while True:
-            if chc in ['1','2','0']:
-                break
-            print('Choose 1 / 2 / 0')
-            chc = input('>>>')
+    while chc not in ['1','2','0']:
+        chc = input('Choose 1 / 2 / 0\n>>> ')
 
     if chc == '1':
         path = 'database/user.txt'
@@ -105,16 +136,17 @@ while True:
         
         if match(path,username, passwd,'LOGIN'):
             os.system('cls')
+           
             path = 'database/history.txt'
 
             while True:
+                print('=== CASH ===')
+                print('Rp. ', calculateWallet(username))
+
                 main_chc = MENU('MAIN_MENU')
 
-                while True:
-                    if main_chc in ['1','2','3','0']:
-                        break
-                    print('Choose 1 / 2 / 3 / 0')
-                    main_chc = input('>>>')
+                while main_chc not in ['1','2','3','4','0']:
+                    main_chc = input('Choose 1 / 2 / 3 / 4 / 0\n>>> ')
 
                 if main_chc == '1':
 
@@ -155,68 +187,76 @@ while True:
                     f.close()
 
                 elif main_chc == '2':
-                    while True:
-                        phone = input('Input Phone Number : ')
-                        while not isNumber(phone,10,13):
-                            print('Phone Number Not Valid. ex: 081234567892')
-                            phone = input('Input Phone Number : ')
+                    print('==== TRANSFER MENU ====')
+                    chc = input('Go Back (0) | Continue (1)\n>>> ')
 
-                        receiver = getReceiverName('database/user.txt',phone,username)
-
-                        if receiver[0] == '1':
-                            print('Receiver : ', receiver[1])
-                            break
-                        elif receiver[0] == '300':
-                            print(receiver[1])
-                        elif receiver[0] == '400':
-                            print(receiver[1])
-
-                    amount = input('Input Amount : ')
-                    while not isNumber(amount,5,8):
-                        print('Amount Invalid. Amount Must Not Have Alphabet')
-                        amount = input('Input Amount : ')
-
-                    desc = input('Input Description : ')
-                    while len(desc) > 20:
-                        print('Maximum Description Length Must Be 20 Characters')
-                        desc = input('Input Description : ')
-
-                    pin = input('Enter PIN : ')
-                    while not isNumber(pin,6,6):
-                        print('PIN Invalid. PIN Must be Exactly 6 digits with no Alphabet')
-                        pin = input('Input PIN : ')
-
-                    sender = username
-                    _type = 'Transfer'
+                    while chc not in ['0','1']:
+                        chc = input('Choose 1 / 0\n>>> ')
                     
-                    if match('database/user.txt',username,pin,'PIN'):
-                        transferid = createID()
-                        _datetime = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                    if chc == '1':
+                        while True:
 
-                        spaces = [19,20,8,8,10,10]
+                            phone = input('Input Phone Number : ')
+                            while not isNumber(phone,10,13):
+                                print('Phone Number Not Valid. ex: 081234567892')
+                                phone = input('Input Phone Number : ')
 
-                        list_of_data = [_datetime, desc, _type, amount, sender, receiver[1]]
+                            receiver = getReceiverName('database/user.txt',phone,username)
 
-                        string = transferid
+                            if receiver[0] == '1':
+                                print('Receiver : ', receiver[1])
+                                break
+                            elif receiver[0] == '300':
+                                print(receiver[1])
+                            elif receiver[0] == '400':
+                                print(receiver[1])
 
-                        for data,space in zip(list_of_data,spaces):
-                            string += '#'
-                            if len(data) < space:
-                                data = data + ' ' * (space - len(data))
-                            string += data
+                        amount = input('Input Amount : ')
+                        while not isNumber(amount,5,8):
+                            print('Amount Invalid. Amount Must Not Have Alphabet')
+                            amount = input('Input Amount : ')
 
-                        string += '\n'
+                        desc = input('Input Description : ')
+                        while len(desc) > 20:
+                            print('Maximum Description Length Must Be 20 Characters')
+                            desc = input('Input Description : ')
 
-                        f = open(path,'a')
-                        f.write(string)
-                        f.close()
+                        pin = input('Enter PIN : ')
+                        while not isNumber(pin,6,6):
+                            print('PIN Invalid. PIN Must be Exactly 6 digits with no Alphabet')
+                            pin = input('Input PIN : ')
 
-                        print('=== SUCCESSFUL ===')
-                        print('Transfer of {} Has Been Made to {}'.format(amount,receiver[1]))
+                        sender = username
+                        _type = 'Transfer'
 
-                    else :
-                        print('=== FAILED ===')
-                        print('Wrong Security PIN')
+                        if match('database/user.txt',username,pin,'PIN'):
+                            transferid = createID()
+                            _datetime = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+                            spaces = [19,20,8,8,10,10]
+
+                            list_of_data = [_datetime, desc, _type, amount, sender, receiver[1]]
+
+                            string = transferid
+
+                            for data,space in zip(list_of_data,spaces):
+                                string += '#'
+                                if len(data) < space:
+                                    data = data + ' ' * (space - len(data))
+                                string += data
+
+                            string += '\n'
+
+                            f = open(path,'a')
+                            f.write(string)
+                            f.close()
+
+                            print('=== SUCCESSFUL ===')
+                            print('Transfer of {} Has Been Made to {}'.format(amount,receiver[1]))
+
+                        else :
+                            print('=== FAILED ===')
+                            print('Wrong Security PIN')
 
 
                 elif main_chc == '3':
@@ -228,11 +268,41 @@ while True:
                     'Type'.ljust(10) + 'Amount'.ljust(10) + 'Sender'.ljust(12) +'Receiver')
                     
                     for data in history_data:
+                        color = 'red'
+                        if data[-1].strip() == username: color = 'green'
+                        
                         for value in data:
-                            print(value,end='  ')
+                            print(colored(value,color),end='  ')
 
                         print()
-                
+                        
+                elif main_chc == '4':
+                    opt = 'EXCEL'
+                    chc = input('Download to Excel (0) | Download to CSV (1)\n>>> ')
+                    
+                    while chc not in ['0','1']:
+                        chc = input('Choose 1 / 0\n>>> ')
+                    
+                    
+                    if opt == '1': opt = 'CSV'
+
+                    history_data = fetchData(path,username)
+                    history_data = [ prepareData(data) for data in history_data ]
+                    
+                    results = []
+                    for data in history_data:
+                        tmp = []
+                        for value in data:
+                            tmp.append(value.strip())
+                        results.append(tmp)
+
+
+                    if downloadHistory(opt):
+                        print('File Downloaded Successfully')
+                    else :
+                        print('There\'s Problem Downloading File')
+
+                    
                 elif main_chc == '0':
                     break
         else:
@@ -268,21 +338,19 @@ while True:
             print('Phone Number Invalid. ex: 081234567892')
             phone = input('Input Phone Number : ')
             
-        now = datetime.now()
-        epoch = now.timestamp()
-        userid = sha256(str(epoch))[:11]
+        userid = createID()
 
         if os.path.exists(path):
-            user = userid + ' ' + username + ' ' + sha256(passwd) + ' ' + email + ' ' + pin + ' ' + phone + '\n'
+            string = userid + ' ' + username + ' ' + sha256(passwd) + ' ' + email + ' ' + pin + ' ' + phone + '\n'
             f = open(path,'a')
-            f.write(user)
+            f.write(string)
             f.close()
             
         else:
-            user = userid + ' ' + username + ' ' + sha256(passwd) + ' ' + email + ' ' + pin + ' ' + phone + '\n'
+            string = userid + ' ' + username + ' ' + sha256(passwd) + ' ' + email + ' ' + pin + ' ' + phone + '\n'
             f = open(path,'a')
             f.write('id username password email pin phone \n')
-            f.write(user)
+            f.write(string)
             f.close()
     if chc == '0':
         break
