@@ -6,6 +6,9 @@ from threading import Event
 
 def isNumber(txt,_min=6, _max=10): return True if re.match('^[0-9]{' + str(_min) + ',' + str(_max) + '}$',txt) else False
 def isNotNumber(txt,_min=6, _max=10): return True if re.match('^[^0-9]{'+ str(_min) + ',' + str(_max) + '}$',txt) else False
+def isEmail(txt): return True if re.match('[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+',txt) else False
+def isPassword(txt,_min=8, _max=12): return True if re.match('^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{' + str(_min) + ',' + str(_max)+'}$',txt) else False
+def createID(): return sha256(str(datetime.now().timestamp()))[:11]
 
 def MENU(opt='START_MENU'):
     if opt == 'START_MENU':
@@ -115,14 +118,21 @@ while True:
 
                 if main_chc == '1':
 
-                    now = datetime.now()
-                    epoch = now.timestamp()
-                    historyid = sha256(str(epoch))[:11]
-                    # spaces = [10,8,20,8,8,10,10]
+                    historyid = createID()
+
                     spaces = [19,20,8,8,10,10]
-                    _datetime = str(now.strftime('%Y-%m-%d %H:%M:%S'))
+                    _datetime = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
                     bank = input('Input Bank : ')
+                    while not isNotNumber(bank,3,10):
+                        print('Bank Must Contain 3-10 Character with No Number')
+                        bank = input('Input Bank : ')
+
                     amount = input('Input Amount of Money : ')
+                    while not isNumber(amount,5,8):
+                        print('Amount Invalid. Amount Must Not Have Alphabet')
+                        amount = input('Input Amount : ')
+
                     desc = 'Top Up From ' + bank
                     sender = bank
                     receiver = username
@@ -147,6 +157,10 @@ while True:
                 elif main_chc == '2':
                     while True:
                         phone = input('Input Phone Number : ')
+                        while not isNumber(phone,10,13):
+                            print('Phone Number Not Valid. ex: 081234567892')
+                            phone = input('Input Phone Number : ')
+
                         receiver = getReceiverName('database/user.txt',phone,username)
 
                         if receiver[0] == '1':
@@ -158,14 +172,51 @@ while True:
                             print(receiver[1])
 
                     amount = input('Input Amount : ')
-                    pin = input('Enter PIN : ')
+                    while not isNumber(amount,5,8):
+                        print('Amount Invalid. Amount Must Not Have Alphabet')
+                        amount = input('Input Amount : ')
 
+                    desc = input('Input Description : ')
+                    while len(desc) > 20:
+                        print('Maximum Description Length Must Be 20 Characters')
+                        desc = input('Input Description : ')
+
+                    pin = input('Enter PIN : ')
+                    while not isNumber(pin,6,6):
+                        print('PIN Invalid. PIN Must be Exactly 6 digits with no Alphabet')
+                        pin = input('Input PIN : ')
+
+                    sender = username
+                    _type = 'Transfer'
+                    
                     if match('database/user.txt',username,pin,'PIN'):
-                        print('Berhasil Transfer')
-                        print('Transfer of {} Has Been Made to {}'.format(amount,receiver))
+                        transferid = createID()
+                        _datetime = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+                        spaces = [19,20,8,8,10,10]
+
+                        list_of_data = [_datetime, desc, _type, amount, sender, receiver[1]]
+
+                        string = transferid
+
+                        for data,space in zip(list_of_data,spaces):
+                            string += '#'
+                            if len(data) < space:
+                                data = data + ' ' * (space - len(data))
+                            string += data
+
+                        string += '\n'
+
+                        f = open(path,'a')
+                        f.write(string)
+                        f.close()
+
+                        print('=== SUCCESSFUL ===')
+                        print('Transfer of {} Has Been Made to {}'.format(amount,receiver[1]))
 
                     else :
-                        print('Tidak Berhasil')
+                        print('=== FAILED ===')
+                        print('Wrong Security PIN')
 
 
                 elif main_chc == '3':
@@ -189,11 +240,34 @@ while True:
 
     if chc == '2':
         path = 'database/user.txt'
+        
         username = input('Input Username : ')
+        while not isNotNumber(username,8,10):
+            print('Username Invalid')
+            print('Username Must Contain 8-10 Character with No Number')
+            username = input('Input Username : ')    
+        
         passwd = input('Input Password : ')
+        while not isPassword(passwd):
+            print('Password Invalid')
+            print('Password Must Contain 1 Uppercase, 1 Special Character, 1 Number and At Least 8 Character')
+            passwd = input('Input Password : ')
+
         email = input('Input Email : ')
+        while not isEmail(email):
+            print('Email Invalid. example : john@gmail.com')
+            email = input('Input Email : ')
+
         pin = input('Input PIN : ')
-        phone = input('Input Phone Number : ')     
+        while not isNumber(pin,6,6):
+            print('PIN Invalid. PIN Must be Exactly 6 digits with no Alphabet')
+            pin = input('Input PIN : ')
+
+        phone = input('Input Phone Number : ')
+        while not isNumber(phone,10,13):
+            print('Phone Number Invalid. ex: 081234567892')
+            phone = input('Input Phone Number : ')
+            
         now = datetime.now()
         epoch = now.timestamp()
         userid = sha256(str(epoch))[:11]

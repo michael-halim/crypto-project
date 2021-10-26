@@ -1,7 +1,5 @@
-import re
+from datetime import datetime,date
+from sha import sha256
+def createID(): return sha256(str(datetime.now().timestamp()))[:11]
 
-def isNotNumber(txt,_min=6, _max=10): return True if re.match('^[^0-9]{'+ str(_min) + ',' + str(_max) + '}$',txt) else False
-    
-
-
-print(isNotNumber('asdfghjklq'))
+print(createID())
