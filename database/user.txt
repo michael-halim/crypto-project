@@ -1,3 +1,3 @@
 id username password email pin phone salt secret activate
-5ec35eacaed MichaelH 641dd2798ad78090fd305d949b27e42ba1b2ffec9aa1afcc3f3580547bc148f0 c14190119@john.petra.ac.id 909090 0812312312312 5ec35eacaed VECTVEACAE 0
+5ec35eacaed MichaelH 641dd2798ad78090fd305d949b27e42ba1b2ffec9aa1afcc3f3580547bc148f0 c14190119@john.petra.ac.id 909090 0812312312312 5ec35eacaed VECTVEACAE 1
 e2d3ac726b6 YunusMars 16ced168de0a5b3c914da55bda4c0d536690d5796517b11e1af73ac37aff3341 yunus@gmail.com 909090 0812345678922 e2d3ac726b6 ESDTACXSWB 0
