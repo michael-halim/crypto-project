@@ -21,7 +21,7 @@ def MENU(opt='START_MENU'):
     if opt == 'START_MENU':
         print('1. Login\n2. Sign up\n0. Log Off \n')
     elif opt == 'MAIN_MENU':
-        print('1. Top Up\n2. Transfer\n3. History\n4. Download History\n5.Security\n0. Log Off \n')
+        print('1. Top Up\n2. Transfer\n3. History\n4. Download History\n5. Security\n0. Log Off \n')
 
     return input('>>> ')
 
@@ -54,6 +54,7 @@ def fetchSecret(file_name,username):
         for line in read_obj:
             if username in line:
                 result.append((line.rstrip()))
+                break
 
     if not result:
         return 0
@@ -86,6 +87,7 @@ def fetchSalt(file_name, username):
         for line in read_obj:
             if username in line:
                 result.append((line.rstrip()))
+                break
 
     if not result:
         return 0
@@ -102,6 +104,7 @@ def match(file_name, username, hashed, opt='LOGIN'):
         for line in read_obj:
             if username in line:
                 result.append((line.rstrip()))
+                break
 
     if not result:
         return 0
@@ -136,6 +139,7 @@ def getReceiverName(file_name,phone,username):
         for line in read_obj:
             if phone in line:
                 results.append((line.rstrip()))
+                break
     
     if results:
         results = [result.split(' ') for result in results]
@@ -196,10 +200,13 @@ def downloadHistory(opt='EXCEL'):
         return 1
 
     elif opt == 'CSV':
-        download_df.to_csv('output.csv',index=False)
+        download_df.to_csv(r'output.csv',index=False)
         return 1
 
     return 0
+
+USER_PATH = 'database/user.txt'
+HISTORY_PATH = 'database/history.txt'
 
 while True:
     chc = MENU()
@@ -207,18 +214,18 @@ while True:
         chc = input('Choose 1 / 2 / 0\n>>> ')
 
     if chc == '1':
-        path = 'database/user.txt'
 
-        if os.path.exists(path):
+        if os.path.exists(USER_PATH):
             username = input('Input Username : ')
-            salt = fetchSalt(path,username)
+            salt = fetchSalt(USER_PATH,username)
 
-            if not salt == 0:         
+            if not salt == 0:        
+
                 passwd = sha256(input('Input Password : ') + salt)
-                if match(path,username, passwd,'LOGIN'):
+                if match(USER_PATH,username, passwd,'LOGIN'):
 
-                    is_google_auth = isGA('database/user.txt',username)
-                    secret = fetchSecret('database/user.txt',username)
+                    is_google_auth = isGA(USER_PATH,username)
+                    secret = fetchSecret(USER_PATH,username)
 
                     is_correct = False
                     is_login = False
@@ -262,8 +269,6 @@ while True:
                     if is_login:
                         os.system('cls')
                     
-                        path = 'database/history.txt'
-
                         while True:
                             print('=== CASH ===')
                             money = calculateWallet(username)
@@ -308,9 +313,10 @@ while True:
 
                                 string += '\n'
 
-                                f = open(path,'a')
+                                f = open(HISTORY_PATH,'a')
                                 f.write(string)
                                 f.close()
+                                print('Successfuly Top Up')
 
                             elif main_chc == '2':
                                 print('==== TRANSFER MENU ====')
@@ -328,7 +334,7 @@ while True:
                                             print('Phone Number Not Valid. ex: 081234567892')
                                             phone = input('Input Phone Number : ')
 
-                                        receiver = getReceiverName('database/user.txt',phone,username)
+                                        receiver = getReceiverName(USER_PATH,phone,username)
 
                                         if receiver[0] == '1':
                                             print('Receiver : ', receiver[1])
@@ -373,7 +379,7 @@ while True:
                                         sender = username
                                         _type = 'Transfer'
 
-                                        if match('database/user.txt',username,pin,'PIN'):
+                                        if match(USER_PATH,username,pin,'PIN'):
                                             transferid = createID()
                                             _datetime = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
@@ -391,7 +397,7 @@ while True:
 
                                             string += '\n'
 
-                                            f = open(path,'a')
+                                            f = open(HISTORY_PATH,'a')
                                             f.write(string)
                                             f.close()
 
@@ -402,10 +408,9 @@ while True:
                                             print('=== FAILED ===')
                                             print('Wrong Security PIN')
 
-
                             elif main_chc == '3':
 
-                                history_data = fetchData(path,username)
+                                history_data = fetchData(HISTORY_PATH,username)
                                 history_data = [ prepareData(data) for data in history_data ]
 
                                 print('Date'.ljust(12) + 'Time'.ljust(10) + 'Description'.ljust(22) + 
@@ -419,7 +424,10 @@ while True:
                                         print(colored(value,color),end='  ')
 
                                     print()
-                                    
+
+                                print('\n\n\n')
+                                print('==================================')
+
                             elif main_chc == '4':
                                 chc = input('Download to Excel (0) | Download to CSV (1)\n>>> ')
                                 
@@ -427,9 +435,10 @@ while True:
                                     chc = input('Choose 1 / 0\n>>> ')
                                 
                                 opt = 'EXCEL'
-                                if opt == '1': opt = 'CSV'
+                                if chc == '1': 
+                                    opt = 'CSV'
 
-                                history_data = fetchData(path,username)
+                                history_data = fetchData(HISTORY_PATH,username)
                                 history_data = [ prepareData(data) for data in history_data ]
                                 
                                 results = []
@@ -440,12 +449,13 @@ while True:
                                     results.append(tmp)
 
 
-                                if downloadHistory(opt): print('File Downloaded Successfully')
-                                    
-                                else : print('There\'s Problem Downloading File')
-                                    
+                                if downloadHistory(opt): 
+                                    print('File Downloaded Successfully')
+                                else : 
+                                    print('There\'s Problem Downloading File')
+                                
                             elif main_chc == '5':
-                                secret = fetchSecret('database/user.txt',username)
+                                secret = fetchSecret(USER_PATH,username)
                                 chc = input('Go Back (0) | Continue (1)\n>>> ')
 
                                 while chc not in ['0','1']:
@@ -458,9 +468,11 @@ while True:
                                         ch = input('Choose 1 / 0\n>>> ')
 
                                     if ch == '0':
-                                        editActivation('database/user.txt',username,mode='DISABLE')
+                                        editActivation(USER_PATH,username,mode='DISABLE')
+                                        print('Google Authenticator Has Been Disabled')
+
                                     elif ch == '1':
-                                        editActivation('database/user.txt',username,mode='ENABLE')
+                                        editActivation(USER_PATH,username,mode='ENABLE')
                                         pyotp.totp.TOTP(secret).provisioning_uri(name=username, issuer_name='Crypto Project')
 
                                         # Generate QR code
@@ -473,12 +485,17 @@ while True:
                                         time.sleep(1)
 
                                         os.remove("myqr.png")
+                                        print('Google Authenticator Has Been Enabled')
 
                             elif main_chc == '0':
                                 break
+                            
+                            input('Press Anything to Continue')
+                            os.system('cls')
                     else:
                         print('Login Error')
                         input('Press Anything to Continue')
+                        
                 else:
                     print('Password atau Username Salah')
                     input('Press Anything to Continue')
@@ -492,8 +509,7 @@ while True:
             input('Press Anything to Continue')
 
     if chc == '2':
-        path = 'database/user.txt'
-        
+
         username = input('Input Username : ')
         while not isNotNumber(username,8,10):
             print('Username Invalid')
@@ -525,15 +541,15 @@ while True:
         salt = generateID()
         secret = generateSecret()
 
-        if os.path.exists(path):
+        if os.path.exists(USER_PATH):
             string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + 0 + '\n'
-            f = open(path,'a')
+            f = open(USER_PATH,'a')
             f.write(string)
             f.close()
             
         else:
             string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + 0 + '\n'
-            f = open(path,'a')
+            f = open(USER_PATH,'a')
             f.write('id username password email pin phone salt secret activate\n')
             f.write(string)
             f.close()

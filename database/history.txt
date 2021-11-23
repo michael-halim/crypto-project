@@ -1,3 +1,5 @@
 id datetime judul jenis nominal pengirim penerima
 fd942145c8e#2021-11-18 19:32:24#Top Up From BCA     #Top Up  #100000  #BCA       #YunusMars 
-5feceb66ffc#2021-11-18 19:33:00#Bayar Cicilan       #Transfer#80000   #YunusMars #MichaelH  
+fcb967cb5da#2021-11-23 11:17:47#Top Up From BCA     #Top Up  #10000   #BCA       #MichaelH  
+bcb0a65480f#2021-11-23 11:18:03#Top Up From BCA     #Top Up  #10000   #BCA       #MichaelH  
+ac92ac1d7d3#2021-11-23 11:20:15#Top Up From BCA     #Top Up  #200000  #BCA       #MichaelH  
