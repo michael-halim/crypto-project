@@ -2,7 +2,6 @@ from lsfr import generateID
 
 def generateSecret():
     string = generateID()
-    print(string)
     new_str = ''
     for letter in string:
         if letter.isdigit():

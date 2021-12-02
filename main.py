@@ -10,6 +10,8 @@ import pyqrcode
 from PIL import Image
 from lsfr import generateID
 from secret import generateSecret
+from aes import encrypt as aes_encryption ,decrypt as aes_decryption
+import base64
 
 def isNumber(txt,_min=6, _max=10): return True if re.match('^[0-9]{' + str(_min) + ',' + str(_max) + '}$',txt) else False
 def isNotNumber(txt,_min=6, _max=10): return True if re.match('^[^0-9]{'+ str(_min) + ',' + str(_max) + '}$',txt) else False
@@ -99,7 +101,6 @@ def fetchSalt(file_name, username):
 
 def match(file_name, username, hashed, opt='LOGIN'):
     result = []
-
     with open(file_name, 'r') as read_obj:
         for line in read_obj:
             if username in line:
@@ -205,10 +206,83 @@ def downloadHistory(opt='EXCEL'):
 
     return 0
 
+def get_key():
+    file_obj = open('secret_key.txt','r')
+    return file_obj.readline()
+
+
+
+# def encryptUser(userid,username,passwd,salt,email,pin,phone,secret):
+#     result = str(aes_encryption(str.encode(SECRET_KEY), str.encode(str(userid)))) + ' ' + \
+#             str(aes_encryption(str.encode(SECRET_KEY), str.encode(str(username)))) + ' ' + \
+#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(sha256(passwd + salt))))  + ' ' + \
+#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(str(email))))  + ' ' + \
+#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(str(pin))))  + ' ' + \
+#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(str(phone)))) + ' ' + \
+#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(str(salt)))) + ' ' + \
+#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(str(secret))))  +  ' ' + \
+#             str(aes_encryption(str.encode(SECRET_KEY),str.encode('0'))) + '\n'
+    
+#     result = base64.b64encode(str.encode(result))
+#     result = result.decode("utf-8")
+#     return result
+def create_new_secret_key():
+    new_key = str(generateSecret()) + str(generateSecret())
+    new_key = new_key[:16]
+    sk_obj = open('secret_key.txt','w')
+    sk_obj.write(new_key)
+    return new_key
+
+def encryptDatabase(secret):
+    ENC_PATH = 'database/user.txt'
+    with open(os.path.join(os.path.dirname(__file__), ENC_PATH), 'r') as f:
+            data = f.read()
+
+    cipher = aes_encryption(str.encode(secret),str.encode(data))
+    cipher = base64.b64encode(cipher)
+    cipher = cipher.decode("utf-8")
+    user_obj = open('database/user.txt','w')
+    user_obj.write(cipher)
+
+    ENC_PATH = 'database/history.txt'
+    with open(os.path.join(os.path.dirname(__file__), ENC_PATH), 'r') as f:
+            data = f.read()
+
+    cipher = aes_encryption(str.encode(secret),str.encode(data))
+    cipher = base64.b64encode(cipher)
+    cipher = cipher.decode("utf-8")
+    history_obj = open('database/history.txt','w')
+    history_obj.write(cipher)
+
+def decryptDatabase():
+    DEC_PATH = 'database/user.txt'
+    with open(os.path.join(os.path.dirname(__file__), DEC_PATH), 'r') as f:
+            data = f.read()
+    cobadecrypt = base64.b64decode(data)
+    plaintext = aes_decryption(str.encode(SECRET_KEY), cobadecrypt)
+    plaintext = plaintext.decode("utf-8")
+
+    user_obj = open('database/user.txt','w')
+    user_obj.write(plaintext)
+
+    DEC_PATH = 'database/history.txt'
+    with open(os.path.join(os.path.dirname(__file__), DEC_PATH), 'r') as f:
+            data = f.read()
+    cobadecrypt = base64.b64decode(data)
+    plaintext = aes_decryption(str.encode(SECRET_KEY), cobadecrypt)
+    plaintext = plaintext.decode("utf-8")
+
+    history_obj = open('database/history.txt','w')
+    history_obj.write(plaintext)
+
+
 USER_PATH = 'database/user.txt'
 HISTORY_PATH = 'database/history.txt'
+SECRET_KEY = get_key()
+decryptDatabase()
 
 while True:
+
     chc = MENU()
     while chc not in ['1','2','0']:
         chc = input('Choose 1 / 2 / 0\n>>> ')
@@ -488,7 +562,11 @@ while True:
                                         print('Google Authenticator Has Been Enabled')
 
                             elif main_chc == '0':
-                                break
+                                new_key = create_new_secret_key()
+                                encryptDatabase(secret=new_key)
+                                print('Application Closed Successfuly')
+                                input('Press Anything to Continue')
+                                quit()
                             
                             input('Press Anything to Continue')
                             os.system('cls')
@@ -542,13 +620,14 @@ while True:
         secret = generateSecret()
 
         if os.path.exists(USER_PATH):
-            string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + 0 + '\n'
+            string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + '0' + '\n'
             f = open(USER_PATH,'a')
             f.write(string)
             f.close()
             
         else:
-            string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + 0 + '\n'
+            string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + '0' + '\n'
+
             f = open(USER_PATH,'a')
             f.write('id username password email pin phone salt secret activate\n')
             f.write(string)
@@ -557,6 +636,10 @@ while True:
         print('Account Created Successfuly')
         input('Press Anything to Continue')
     if chc == '0':
+        new_key = create_new_secret_key()
+        encryptDatabase(secret=new_key)
+        print('Application Closed Successfuly')
+        input('Press Anything to Continue')
         break
 
     os.system('cls')
