@@ -34,17 +34,13 @@ def mix_columns(grid):
 
 
 def mix_column(column):
-    r = [
-        multiply_2(column[0]) ^ multiply_3( 
-            column[1]) ^ column[2] ^ column[3],
-        multiply_2(column[1]) ^ multiply_3(
-            column[2]) ^ column[3] ^ column[0],
-        multiply_2(column[2]) ^ multiply_3(
-            column[3]) ^ column[0] ^ column[1],
-        multiply_2(column[3]) ^ multiply_3(
-            column[0]) ^ column[1] ^ column[2],
+    res = [
+        multiply_2( column[0] ) ^ multiply_3( column[1] ) ^ column[2] ^ column[3],
+        multiply_2( column[1] ) ^ multiply_3( column[2] ) ^ column[3] ^ column[0],
+        multiply_2( column[2] ) ^ multiply_3( column[3] ) ^ column[0] ^ column[1],
+        multiply_2( column[3] ) ^ multiply_3( column[0] ) ^ column[1] ^ column[2],
     ]
-    return r
+    return res
 
 def rotate_row_left(row, n=1):
     return row[n:] + row[:n]
@@ -53,10 +49,8 @@ def rotate_row_left(row, n=1):
 def add_sub_key(block_grid, key_grid):
     result = []
 
-    # 4 rows in the grid
     for i in range(4):
         result.append([])
-        # 4 values on each row
         for j in range(4):
             result[-1].append(block_grid[i][j] ^ key_grid[i][j])
     return result
@@ -103,10 +97,9 @@ def expand_key(key, rounds):
             key_grid[r] += bytes([last_column_rcon_step[r]
                                   ^ key_grid[r][round*4]])
 
-        # Three more columns to go
         for i in range(len(key_grid)):
             for j in range(1, 4):
-                key_grid[i] += bytes([key_grid[i][round*4+j]
-                                      ^ key_grid[i][round*4+j+3]])
+                key_grid[i] += bytes( [key_grid[i][ round*4 + j]
+                                      ^ key_grid[i][ round*4 + j + 3] ])
 
     return key_grid

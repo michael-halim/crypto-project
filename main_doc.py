@@ -13,6 +13,8 @@ import pyqrcode
 from PIL import Image
 from lsfr import generateID
 from secret import generateSecret
+from aes import encrypt as aes_encryption ,decrypt as aes_decryption
+import base64
 
 def isNumber(txt,_min=6, _max=10): return True if re.match('^[0-9]{' + str(_min) + ',' + str(_max) + '}$',txt) else False
 def isNotNumber(txt,_min=6, _max=10): return True if re.match('^[^0-9]{'+ str(_min) + ',' + str(_max) + '}$',txt) else False
@@ -216,9 +218,67 @@ def downloadHistory(opt='EXCEL'):
         return 1
 
     return 0
+# To get Secret Key to Decrypt or Encrypt Database
+def get_key():
+    file_obj = open('secret_key.txt','r')
+    return file_obj.readline()
+
+# To Create new Secret Key
+def create_new_secret_key():
+    new_key = str(generateSecret()) + str(generateSecret())
+    new_key = new_key[:16]
+    sk_obj = open('secret_key.txt','w')
+    sk_obj.write(new_key)
+    return new_key
+
+# To Encrypt Database
+def encryptDatabase(secret):
+
+    with open(os.path.join(os.path.dirname(__file__), USER_PATH), 'r') as f:
+            data = f.read()
+
+    cipher = aes_encryption(str.encode(secret),str.encode(data))
+    cipher = base64.b64encode(cipher)
+    cipher = cipher.decode("utf-8")
+    user_obj = open('database/user.txt','w')
+    user_obj.write(cipher)
+
+    with open(os.path.join(os.path.dirname(__file__), HISTORY_PATH), 'r') as f:
+            data = f.read()
+
+    cipher = aes_encryption(str.encode(secret),str.encode(data))
+    cipher = base64.b64encode(cipher)
+    cipher = cipher.decode("utf-8")
+    history_obj = open('database/history.txt','w')
+    history_obj.write(cipher)
+
+# To Decrypt Database
+def decryptDatabase():
+    with open(os.path.join(os.path.dirname(__file__), USER_PATH), 'r') as f:
+            data = f.read()
+    cobadecrypt = base64.b64decode(data)
+    plaintext = aes_decryption(str.encode(SECRET_KEY), cobadecrypt)
+    plaintext = plaintext.decode("utf-8")
+
+    user_obj = open('database/user.txt','w')
+    user_obj.write(plaintext)
+
+    with open(os.path.join(os.path.dirname(__file__), HISTORY_PATH), 'r') as f:
+            data = f.read()
+    cobadecrypt = base64.b64decode(data)
+    plaintext = aes_decryption(str.encode(SECRET_KEY), cobadecrypt)
+    plaintext = plaintext.decode("utf-8")
+
+    history_obj = open('database/history.txt','w')
+    history_obj.write(plaintext)
+
 
 USER_PATH = 'database/user.txt'
 HISTORY_PATH = 'database/history.txt'
+
+# Get the Secret Key dan Decrypt Database
+SECRET_KEY = get_key()
+decryptDatabase()
 
 while True:
     chc = MENU()
@@ -280,6 +340,9 @@ while True:
                                 print('You Have ', tries, ' More Tries')
                     
                     if is_blocked:
+                        # Create new Secret key and Encrypt Database
+                        new_key = create_new_secret_key()
+                        encryptDatabase(secret=new_key)
                         break
                     if is_google_auth and is_correct:
                         is_login = True
@@ -553,7 +616,12 @@ while True:
                                         print('Google Authenticator Has Been Enabled')
 
                             elif main_chc == '0':
-                                break
+                                # Create new Secret key and Encrypt Database
+                                new_key = create_new_secret_key()
+                                encryptDatabase(secret=new_key)
+                                print('Application Closed Successfuly')
+                                input('Press Anything to Continue')
+                                quit()
                             
                             input('Press Anything to Continue')
                             os.system('cls')
@@ -611,28 +679,21 @@ while True:
         salt = generateID()
         secret = generateSecret()
 
-        # Check If User Database Exist. If not Create One
-        if os.path.exists(USER_PATH):
-
-            # Create a string of Data and Append it to User Database
-            string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + 0 + '\n'
-            f = open(USER_PATH,'a')
-            f.write(string)
-            f.close()
-            
-        else:
-
-            # Create a string of Data and Append it to User Database
-            string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + 0 + '\n'
-            f = open(USER_PATH,'a')
-            f.write('id username password email pin phone salt secret activate\n')
-            f.write(string)
-            f.close()
+        # Create a string of Data and Append it to User Database
+        string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + 0 + '\n'
+        f = open(USER_PATH,'a')
+        f.write(string)
+        f.close()
         
         print('Account Created Successfuly')
         input('Press Anything to Continue')
         
     if chc == '0':
+        # Create new Secret key and Encrypt Database
+        new_key = create_new_secret_key()
+        encryptDatabase(secret=new_key)
+        print('Application Closed Successfuly')
+        input('Press Anything to Continue')
         break
 
     os.system('cls')

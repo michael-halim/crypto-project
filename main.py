@@ -211,21 +211,6 @@ def get_key():
     return file_obj.readline()
 
 
-
-# def encryptUser(userid,username,passwd,salt,email,pin,phone,secret):
-#     result = str(aes_encryption(str.encode(SECRET_KEY), str.encode(str(userid)))) + ' ' + \
-#             str(aes_encryption(str.encode(SECRET_KEY), str.encode(str(username)))) + ' ' + \
-#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(sha256(passwd + salt))))  + ' ' + \
-#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(str(email))))  + ' ' + \
-#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(str(pin))))  + ' ' + \
-#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(str(phone)))) + ' ' + \
-#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(str(salt)))) + ' ' + \
-#             str(aes_encryption(str.encode(SECRET_KEY),str.encode(str(secret))))  +  ' ' + \
-#             str(aes_encryption(str.encode(SECRET_KEY),str.encode('0'))) + '\n'
-    
-#     result = base64.b64encode(str.encode(result))
-#     result = result.decode("utf-8")
-#     return result
 def create_new_secret_key():
     new_key = str(generateSecret()) + str(generateSecret())
     new_key = new_key[:16]
@@ -234,8 +219,8 @@ def create_new_secret_key():
     return new_key
 
 def encryptDatabase(secret):
-    ENC_PATH = 'database/user.txt'
-    with open(os.path.join(os.path.dirname(__file__), ENC_PATH), 'r') as f:
+
+    with open(os.path.join(os.path.dirname(__file__), USER_PATH), 'r') as f:
             data = f.read()
 
     cipher = aes_encryption(str.encode(secret),str.encode(data))
@@ -244,8 +229,7 @@ def encryptDatabase(secret):
     user_obj = open('database/user.txt','w')
     user_obj.write(cipher)
 
-    ENC_PATH = 'database/history.txt'
-    with open(os.path.join(os.path.dirname(__file__), ENC_PATH), 'r') as f:
+    with open(os.path.join(os.path.dirname(__file__), HISTORY_PATH), 'r') as f:
             data = f.read()
 
     cipher = aes_encryption(str.encode(secret),str.encode(data))
@@ -255,8 +239,7 @@ def encryptDatabase(secret):
     history_obj.write(cipher)
 
 def decryptDatabase():
-    DEC_PATH = 'database/user.txt'
-    with open(os.path.join(os.path.dirname(__file__), DEC_PATH), 'r') as f:
+    with open(os.path.join(os.path.dirname(__file__), USER_PATH), 'r') as f:
             data = f.read()
     cobadecrypt = base64.b64decode(data)
     plaintext = aes_decryption(str.encode(SECRET_KEY), cobadecrypt)
@@ -265,8 +248,7 @@ def decryptDatabase():
     user_obj = open('database/user.txt','w')
     user_obj.write(plaintext)
 
-    DEC_PATH = 'database/history.txt'
-    with open(os.path.join(os.path.dirname(__file__), DEC_PATH), 'r') as f:
+    with open(os.path.join(os.path.dirname(__file__), HISTORY_PATH), 'r') as f:
             data = f.read()
     cobadecrypt = base64.b64decode(data)
     plaintext = aes_decryption(str.encode(SECRET_KEY), cobadecrypt)
@@ -307,7 +289,7 @@ while True:
                     
                     if is_google_auth:
                         totp = pyotp.TOTP(secret)
-                        user_input = input('Input Number From Google Authenticator\n>>>')
+                        user_input = input('Input Number From Google Authenticator\n>>> ')
 
                         if user_input == totp.now():
                             is_correct = True
@@ -333,6 +315,8 @@ while True:
                                 print('You Have ', tries, ' More Tries')
                     
                     if is_blocked:
+                        new_key = create_new_secret_key()
+                        encryptDatabase(secret=new_key)
                         break
                     if is_google_auth and is_correct:
                         is_login = True
@@ -549,10 +533,8 @@ while True:
                                         editActivation(USER_PATH,username,mode='ENABLE')
                                         pyotp.totp.TOTP(secret).provisioning_uri(name=username, issuer_name='Crypto Project')
 
-                                        # Generate QR code
                                         url = pyqrcode.create(pyotp.totp.TOTP(secret).provisioning_uri(name=username, issuer_name='Crypto Project'))
 
-                                        # Create and save the png file naming "myqr.png"
                                         url.png('myqr.png', scale = 6)
                                         img = Image.open('myqr.png')
                                         img.show()
@@ -619,19 +601,10 @@ while True:
         salt = generateID()
         secret = generateSecret()
 
-        if os.path.exists(USER_PATH):
-            string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + '0' + '\n'
-            f = open(USER_PATH,'a')
-            f.write(string)
-            f.close()
-            
-        else:
-            string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + '0' + '\n'
-
-            f = open(USER_PATH,'a')
-            f.write('id username password email pin phone salt secret activate\n')
-            f.write(string)
-            f.close()
+        string = str(userid) + ' ' + str(username) + ' ' + sha256(passwd + salt) + ' ' + str(email) + ' ' + str(pin) + ' ' + str(phone) + ' ' + str(salt) + ' ' + str(secret) +  ' ' + '0' + '\n'
+        f = open(USER_PATH,'a')
+        f.write(string)
+        f.close()
         
         print('Account Created Successfuly')
         input('Press Anything to Continue')
