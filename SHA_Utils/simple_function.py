@@ -9,10 +9,10 @@ def not_(i): return if_(i, 0, 1)
 def NOT(i): return [not_(x) for x in i]
 
 def xor(i, j): return if_(i, not_(j), j)
-def XOR(i, j): return [xor(ia, ja) for ia, ja in zip(i, j)]
+def XOR(i, j): return [xor(a, b) for a, b in zip(i, j)]
 
 def xorxor(i, j, l): return xor(i, xor(j, l))
-def XORXOR(i, j, l): return [xorxor(ia, ja, la) for ia, ja, la, in zip(i, j, l)]
+def XORXOR(i, j, l): return [ xorxor(a, b, c) for a, b, c, in zip(i, j, l)]
 
 def maj(i,j,k): return max([i,j,], key=[i,j,k].count)
 

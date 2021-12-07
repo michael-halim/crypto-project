@@ -1,6 +1,6 @@
-from Utils.help_function import initializer, chunker, preprocessMessage, b2Tob16
-from Utils.simple_function import *
-from Utils.const import *
+from SHA_Utils.help_function import initializer, chunker, preprocessMessage, b2Tob16
+from SHA_Utils.simple_function import *
+from SHA_Utils.const import *
 
 def sha256(message): 
     k = initializer(K)
@@ -14,15 +14,9 @@ def sha256(message):
             s0 = XORXOR(rotr(w[i-15], 7), rotr(w[i-15], 18), shr(w[i-15], 3) ) 
             s1 = XORXOR(rotr(w[i-2], 17), rotr(w[i-2], 19), shr(w[i-2], 10))
             w[i] = add(add(add(w[i-16], s0), w[i-7]), s1)
-            
-        a = h0
-        b = h1
-        c = h2
-        d = h3
-        e = h4
-        f = h5
-        g = h6
-        h = h7
+        
+        a, b, c, d, e, f, g, h = h0, h1, h2, h3, h4, h5, h6, h7
+      
         for j in range(64):
             S1 = XORXOR(rotr(e, 6), rotr(e, 11), rotr(e, 25) )
             ch = XOR(AND(e, f), AND(NOT(e), g))
@@ -38,6 +32,7 @@ def sha256(message):
             c = b
             b = a
             a = add(temp1, temp2)
+       
         h0 = add(h0, a)
         h1 = add(h1, b)
         h2 = add(h2, c)
