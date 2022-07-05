@@ -1,5 +1,5 @@
 # Cryptography Final Project
-## The task of this project is to used 3 or more security concepts to implement that in an app. This app is CLI based Fintech that has a feature to transfer money, see history, download history, sign in and sign up flow, and activate security with 3rd party such as Google Authenticator
+#### The task of this project is to used 3 or more security concepts to implement that in an app. This app is CLI based Fintech that has a feature to transfer money, see history, download history, sign in and sign up flow, and activate security with 3rd party such as Google Authenticator
 
 App Feature
 1. Login 
@@ -48,10 +48,10 @@ Security Feature
 | 5 | It has user input validation to validate every user input |
 | 6 | email and phone number is validated so that it is really a valid value |
 
-User Table
+### User Table
 | id | username | password | email | pin | phone | salt | secret | activate |
 | -- | -------- | -------- | ----- | --- | ----- | ---- | ------ | -------- |
 
-History Table
+### History Table
 | id | datetime | judul | jenis | nominal | pengirim | penerima |
 | -- | -------- | ----- | ----- | ------- | -------- | -------- |
