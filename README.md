@@ -1,3 +1,6 @@
+User Table
+|id|username|password|email|pin|phone|salt|secret|activate|
+
 user dibuat dengan table spt ini
 id username password email pin phone salt secret activate
 
