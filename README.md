@@ -1,61 +1,57 @@
+# Cryptography Final Project
+## The task of this project is to used 3 or more security concepts to implement that in an app. This app is CLI based Fintech that has a feature to transfer money, see history, download history, sign in and sign up flow, and activate security with 3rd party such as Google Authenticator
+
+App Feature
+1. Login 
+  - When login input username and password
+  - it raises an error if user database is not exist
+  - it raises an error if username is not exist
+  - it raises an error if password is incorrect
+  - if you have activate Google Authenticator, you'll be asked about combination in that GA App
+  - if you make 5 incorrect combination number from Google Authenticator, it will automatically log out
+
+2. Main Menu
+  - Sign Up
+    - Sign up required information such as username, password, email , PIN number, and phone number
+
+  - Top Up
+    - Top Up menu will ask for what bank you want to top up and how much you want to transfer
+ 
+  - Transfer
+    - Transfer will ask for a phone number of recipient you want to transfer, how much you want to transfer, description, and PIN number
+    - **NOTES**
+    - You can't transfer to your own phone number, it will raise an error
+    - If you don't have enough money or you want to transfer money more than you have, it will raise an error
+    - If PIN number you inputed is incorrect, it won't transfer the money
+    - If description is too long, you can't continue to transfer the money
+    
+  - History
+    - History menu will gives transaction history from the moment you build an account
+    - Green text mean that you have incoming transaction and red text mean you have outgoing transaction
+
+  - Download History
+    - Download History menu can download history of transaction into excel or csv files (.xlsx or .csv)
+
+  - Security
+    - Security Menu will gives option to ENABLE or DISABLE Google Authenticator that are connected to the real GA App in mobile phone that can be downloaded from Google Play
+
+   - Log Off
+     - Log Off get you out of the application
+     
+Security Feature
+| # | Feature |
+| - | ------- |
+| 1 | Uses SHA-256 to encrypt password with salt so that it won't be easily be hacked |
+| 2 | Uses LSFR as a method for RNG that uses to generate secret for GA, user ID, and Secret Key |
+| 3 | Uses AES-128 to encrypt database everytime you uses this application | 
+| 4 | Secret Key for AES-128 is randomly generated everytime you exit an application |
+| 5 | It has user input validation to validate every user input |
+| 6 | email and phone number is validated so that it is really a valid value |
+
 User Table
 | id | username | password | email | pin | phone | salt | secret | activate |
 | -- | -------- | -------- | ----- | --- | ----- | ---- | ------ | -------- |
 
-user dibuat dengan table spt ini
-id username password email pin phone salt secret activate
-
-history dibuat dengan table spt ini
-id datetime judul jenis nominal pengirim penerima
-
-Cara Kerja Aplikasi
-1. Menu Awal Pertama kali ada 
-    >>> Login
-        Di Login Disuruh Memasukkan Username dan Password 
-        Bila Database User tidak ada akan diberikan Error Message
-        Bila Username tidak terdaftar akan diberikan Error Message
-        Bila Password salah akan diberikan Error Message
-        Bila sudah mengaktifkan Google Authenticator maka akan ditanya berapa kombinasi angka di Google Authenticator tersebut
-        Bila sudah 5 kali salah nomor Google Authenticator maka akan otomatis keluar dari aplikasi
-        
-        Ketika Sudah Bisa Login Terdapat 5 Menu
-        
-        ▐▐ TOP UP ▐▐
-            Top Up akan menanyakan dari Bank apa ingin Top Up dan Nominal yang ingin di transfer 
-        
-        ▐▐ TRANSFER▐▐
-            Transfer akan menanyakan nomor telefon yang ingin di transfer, jumlah nominal, deskripsi, dan PIN
-            *NOTES*
-                Tidak dapat mengirim ke nomor telefon sendiri, ada pengecekan dan Error Message yang diberikan bila memasukkan nomor telefon sendiri
-                Tidak dapat mengirim uang yang tidak dimiliki, ada pengecekan dan Error Message yang diberikan bila memasukkan nominal yang lebih besar daripada saldo 
-                Bila PIN Salah maka tidak dapat transfer
-                Bila Deskripsi terlalu panjang tidak dapat melanjutkan menu transfer
-        
-        ▐▐ HISTORY ▐▐
-            Menu History akan memberikan History Transaksi dari awal buka account hingga terakhir kalo dilengkapi dengan warna.
-             warna hijau menunjukkan uang masuk, dan warna merah menunjukkan uang keluar 
-
-        ▐▐ DOWNLOAD HISTORY ▐▐
-            Menu Download History memberikan option untuk mendownload history account ke dalam bentuk Excel maupun CSV
-
-        ▐▐ SECURITY ▐▐
-            Menu Security memberikan option untuk ENABLE dan DISABLE Google Authenticator yang terhubung ke dalam aplikasi asli GA di HP yang bisa di download di Play Store
-            Ketika memilih untuk ENABLE maka akan diberikan QR Code yang bisa di masukkan ke dalam GA. Kemudian Ketika Masuk ke Aplikasi akan ditanya berapa kombinasi angka yang ada di GA tersebut
-
-        ▐▐ LOG OFF ▐▐
-            Keluar Dari Aplikasi
-
-    >>> Sign Up
-        Mengambil info username password email pin phone dan memasukkan ke dalam Database
-
-    >>> Log Off
-        Keluar dari aplikasi
-
-▐▐ SISTEM KEAMANAN ▐▐
-
-1. Menggunakan SHA-256 di dalam mengenkripsi password. password juga diberi salt terlebih dahulu agar tidak mudah dibobol
-2. Menggunakan LSFR sebagai metode untuk RNG yang digunakan untuk generate Secret GA, userid, dan juga Secret Key
-3. Menggunakan AES-128 untuk mengenkripsi Database setiap kali menggunakan aplikasi dan secret key nya berubah setiap kali keluar dari aplikasi
-4. Ketika Membuat Password user dipaksa untuk membuat password yang panjangnya minimal 8 huruf, terdapat minimal 1 huruf besar, dan 1 special character
-5. Sudah dilengkapi dengan minimal user input length di dalam setiap kali input data dari user menggunakan regex
-6. email dan nomor telefon yang digunakan sudah benar - benar valid ketika dimasukkan
+History Table
+| id | datetime | judul | jenis | nominal | pengirim | penerima |
+| -- | -------- | ----- | ----- | ------- | -------- | -------- |
