@@ -1,6 +1,7 @@
 # Cryptography Final Project
 ##### The task of this project is to used 3 or more security concepts to implement that in an app. This app is CLI based Fintech that has a feature to transfer money, see history, download history, sign in and sign up flow, and activate security with 3rd party such as Google Authenticator
-#### Installation
+
+### Installation
 1. ```git clone https://github.com/michael-halim/crypto-project```
 2. ```python main.py``` or ```Ctrl + F5``` in main.py in VSCode
 
