@@ -1,6 +1,8 @@
 # Cryptography Final Project
 ##### The task of this project is to used 3 or more security concepts to implement that in an app. This app is CLI based Fintech that has a feature to transfer money, see history, download history, sign in and sign up flow, and activate security with 3rd party such as Google Authenticator
 
+##### Cryptography Final Project to create an fintech application. The main assignment of this project is to used 3 or more security concepts to implement in app. We use SHA-256 and salt to encrypt password , AES-128 to encrypt database file,  LSFR to make Random Generated Number, and 2 FA security that uses Google Authenticator to login into an account
+
 ### Installation
 1. ```git clone https://github.com/michael-halim/crypto-project```
 2. ```python main.py``` or ```Ctrl + F5``` in main.py in VSCode
